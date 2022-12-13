@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------
+# Function: calculate_total
+# --------------------------------------------------------------------------------
+
 def calculate_total(subtotal, shipping, discount, tax_percent):
     if subtotal < 0:
         raise ValueError('subtotal cannot be negative')
@@ -16,3 +20,31 @@ def calculate_total(subtotal, shipping, discount, tax_percent):
 
     rounded = round(total, 2)
     return rounded
+
+
+# --------------------------------------------------------------------------------
+# Class: Item
+# --------------------------------------------------------------------------------
+
+class Item:
+    def __init__(self, name, unit_price, quantity=1):
+        self.name = name
+        self.unit_price = unit_price
+        self.quantity = quantity
+
+    def calculate_item_total(self):
+        total = self.quantity * self.unit_price
+        rounded = round(total, 2)
+        return rounded
+
+
+# --------------------------------------------------------------------------------
+# Class: Order
+# --------------------------------------------------------------------------------
+
+class Order:
+    def __init__(self):
+        self.items = []
+
+    def add_item(self, item):
+        self.items.append(item)
