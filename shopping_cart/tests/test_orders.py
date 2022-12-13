@@ -1,5 +1,6 @@
 import pytest
 from orders import *
+from unittest.mock import Mock
 
 
 # --------------------------------------------------------------------------------
@@ -98,3 +99,60 @@ def test_Order_add_item_to_existing():
     assert len(order.items) == 2
     assert order.items[0] == item0
     assert order.items[1] == item1
+
+
+def test_Order_calculate_subtotal_for_multiple_items():
+    order = Order()
+
+    item0 = Mock()
+    item0.calculate_item_total.return_value = 5
+    order.add_item(item0)
+
+    item1 = Mock()
+    item1.calculate_item_total.return_value = 20
+    order.add_item(item1)
+
+    assert order.calculate_subtotal() == 25
+
+
+def test_Order_calculate_order_total(mocker):
+    order = Order(10, 5, 0.05)
+    subtotal_mock = mocker.patch.object(
+        order, 'calculate_subtotal', return_value=100)
+    total_mock = mocker.patch(
+        'orders.calculate_total', return_value=110.25)
+
+    order_total = order.calculate_order_total()
+
+    assert order_total == 110.25
+    subtotal_mock.assert_called_once()
+    total_mock.assert_called_once_with(100, 10, 5, 0.05)
+
+
+def test_Order_get_reward_points(mocker):
+    order = Order()
+    subtotal_mock = mocker.patch.object(
+        order, 'calculate_order_total', return_value=1000)
+    assert order.get_reward_points() == 1010
+
+
+
+# --------------------------------------------------------------------------------
+# Tests for DynamicallyPricedItem
+# --------------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    'unit_price, quantity, expected',
+    [
+        (12.34, 1, 12.34),
+        (12.34, 3, 37.02),
+        (12.34, 0, 0),
+        (0, 1, 0),
+    ]
+)
+def test_DynamicallyPricedItem_calculate_item_total(
+    mocker, unit_price, quantity, expected):
+
+    item = DynamicallyPricedItem(12345, quantity)
+    mocker.patch.object(item, 'get_latest_price', return_value=unit_price)
+    assert expected == item.calculate_item_total()
